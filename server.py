@@ -1,5 +1,6 @@
 #  coding: utf-8 
 import socketserver
+import os
 # Copyright 2013 Abram Hindle, Eddie Antonio Santos
 # 
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -42,34 +43,33 @@ class MyWebServer(socketserver.BaseRequestHandler):
         
         method = method_path_list[0] # type of request [GET, POST, ect]
         path = method_path_list[1] # path that is requested 
-        print("PATHJ: ", path)
+        
         
         # Only method allowed is GET so if anything else send status code of 405
-        if method != "GET":
-            self.send_reply(405, "Method Not Allowed")
+        if method != 'GET':
+            # Return a 405 Method Not Allowed response
+            response = "HTTP/1.1 405 Method Not Allowed\r\n\r\n405 Method Not Allowed"
+            self.request.sendall(response.encode())
             return
         
-        # we will be serving files from the www folder
-        folder = "./www"
-        
-        folder_path = folder + path
-        
-        # handle non existing paths here (404)
-        
-        
-        # read the file
-        print("HERE", folder_path)
-        with open(folder_path, 'rb') as f:
-            content = f.read()
-        
-        # send response to client   
-        self.send_reply(200, "OK", content)
+        try:
+            if path == '/':
+                response = "HTTP/1.1 301 Moved Permanently\r\nLocation: /index.html\r\n\r\n"
+                self.request.sendall(response.encode())
+                path = '/index.html'
+            
+            # Read the file
+            with open('./www' + path, 'rb') as file:
+                response_data = file.read()
+                file.close()
 
-    def send_reply(self, status_code, status_text, content=None):
-        response = "HTTP/1.1 {} {}\r\n".format(status_code, status_text)
-        self.request.sendall(response.encode('utf-8'))
-        if content:
-            self.request.sendall(content)
+            # Send HTTP response with the file data
+            response = f"HTTP/1.1 200 OK\r\nContent-Length: {len(response_data)}\r\n\r\n".encode() + response_data
+            self.request.sendall(response)
+        except FileNotFoundError:
+            # Handle 404 Not Found
+            error_response = "HTTP/1.1 404 Not Found\r\n\r\n404 Not Found"
+            self.request.sendall(error_response.encode())
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 8080
