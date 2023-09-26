@@ -1,6 +1,5 @@
 #  coding: utf-8 
 import socketserver
-
 # Copyright 2013 Abram Hindle, Eddie Antonio Santos
 # 
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,7 +31,45 @@ class MyWebServer(socketserver.BaseRequestHandler):
     def handle(self):
         self.data = self.request.recv(1024).strip()
         print ("Got a request of: %s\n" % self.data)
-        self.request.sendall(bytearray("OK",'utf-8'))
+        
+        # decode the data we got and put it into a list
+        decoded_request_list = self.data.decode('utf-8').split('\n')
+        
+        method_path_list = decoded_request_list[0].strip().split()
+        
+        if len(method_path_list) < 2: # requests should have at least 2 elements if it dosent it means its a bad request so return
+            return
+        
+        method = method_path_list[0] # type of request [GET, POST, ect]
+        path = method_path_list[1] # path that is requested 
+        print("PATHJ: ", path)
+        
+        # Only method allowed is GET so if anything else send status code of 405
+        if method != "GET":
+            self.send_reply(405, "Method Not Allowed")
+            return
+        
+        # we will be serving files from the www folder
+        folder = "./www"
+        
+        folder_path = folder + path
+        
+        # handle non existing paths here (404)
+        
+        
+        # read the file
+        print("HERE", folder_path)
+        with open(folder_path, 'rb') as f:
+            content = f.read()
+        
+        # send response to client   
+        self.send_reply(200, "OK", content)
+
+    def send_reply(self, status_code, status_text, content=None):
+        response = "HTTP/1.1 {} {}\r\n".format(status_code, status_text)
+        self.request.sendall(response.encode('utf-8'))
+        if content:
+            self.request.sendall(content)
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 8080
