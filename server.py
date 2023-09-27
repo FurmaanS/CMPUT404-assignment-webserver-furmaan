@@ -63,8 +63,13 @@ class MyWebServer(socketserver.BaseRequestHandler):
                 response_data = file.read()
                 file.close()
 
+            # Before sending the HTTP response we need to figure out the mimetype
+            if path.endswith('.html'):
+                content_type = 'text/html'
+            elif path.endswith('.css'):
+                content_type = 'text/css'
             # Send HTTP response with the file data
-            response = f"HTTP/1.1 200 OK\r\nContent-Length: {len(response_data)}\r\n\r\n".encode() + response_data
+            response = f"HTTP/1.1 200 OK\r\nContent-Length: {len(response_data)}\r\nContent-Type: {content_type}\r\n\r\n".encode() + response_data
             self.request.sendall(response)
         except FileNotFoundError:
             # Handle 404 Not Found
