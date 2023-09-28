@@ -1,5 +1,6 @@
 #  coding: utf-8 
 import socketserver
+import os
 # Copyright 2013 Abram Hindle, Eddie Antonio Santos
 # 
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -42,12 +43,12 @@ class MyWebServer(socketserver.BaseRequestHandler):
         
         method = method_path_list[0] # type of request [GET, POST, ect]
         path = method_path_list[1] # path that is requested 
-        
+        print("PATH: ", path)
         
         # Only method allowed is GET so if anything else send status code of 405
         if method != 'GET':
             # Return a 405 Method Not Allowed response
-            response = "HTTP/1.1 405 Method Not Allowed\r\n\r\n405 Method Not Allowed"
+            response = "HTTP/1.1 405 Method Not Allowed\r\nConnection: close\r\n\r\n405 Method Not Allowed"
             self.request.sendall(response.encode())
             return
         
@@ -55,24 +56,36 @@ class MyWebServer(socketserver.BaseRequestHandler):
             if path == '/':
                 response = "HTTP/1.1 301 Moved Permanently\r\nLocation: /index.html\r\n\r\n"
                 self.request.sendall(response.encode())
-                path = '/index.html'
+                path = '/index.html'    
+            elif path == '/deep':
+                response = "HTTP/1.1 301 Moved Permanently\r\nLocation: /deep/\r\n\r\n"
+                self.request.sendall(response.encode())
+                path = '/deep/'
+            elif path != '/' and path != '/deep/' and path.endswith('/'): # this is to deal with paths that end in '/'
+                path = path[:-1]
+                response = f"HTTP/1.1 301 Moved Permanently\r\nLocation: {path}\r\n\r\n"
+                self.request.sendall(response.encode())
             
-            # Read the file
+            # read the file
+            if path == '/deep/': path = '/deep/index.html'
             with open('./www' + path, 'rb') as file:
                 response_data = file.read()
                 file.close()
+               
+            
 
             # Before sending the HTTP response we need to figure out the mimetype
             if path.endswith('.html'):
                 content_type = 'text/html'
             elif path.endswith('.css'):
                 content_type = 'text/css'
+                
             # Send HTTP response with the file data
-            response = f"HTTP/1.1 200 OK\r\nContent-Length: {len(response_data)}\r\nContent-Type: {content_type}\r\n\r\n".encode() + response_data
+            response = f"HTTP/1.1 200 OK\r\nContent-Length: {len(response_data)}\r\nContent-Type: {content_type}\r\nConnection: close\r\n\r\n".encode() + response_data
             self.request.sendall(response)
         except FileNotFoundError:
             # Handle 404 Not Found
-            error_response = "HTTP/1.1 404 Not Found\r\n\r\n404 Not Found"
+            error_response = "HTTP/1.1 404 Not Found\r\nConnection: close\r\n\r\n404 Not Found"
             self.request.sendall(error_response.encode())
 
 if __name__ == "__main__":
