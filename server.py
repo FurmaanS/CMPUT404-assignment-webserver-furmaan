@@ -42,8 +42,13 @@ class MyWebServer(socketserver.BaseRequestHandler):
             return
         
         method = method_path_list[0] # type of request [GET, POST, ect]
-        path = method_path_list[1] # path that is requested 
-        print("PATH: ", path)
+        path = method_path_list[1] # path that is requested
+        
+        # this will prevent weird paths that are not allowed such as /../../../../../../../../../../../../etc/group
+        if ".." in path:
+            response = "HTTP/1.1 404 Not Found\r\nConnection: close\r\n\r\n404 Not Found"
+            self.request.sendall(response.encode())
+            return
         
         # Only method allowed is GET so if anything else send status code of 405
         if method != 'GET':
@@ -65,7 +70,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
                 path = path[:-1]
                 response = f"HTTP/1.1 301 Moved Permanently\r\nLocation: {path}\r\n\r\n"
                 self.request.sendall(response.encode())
-            
+
             # read the file
             if path == '/deep/': path = '/deep/index.html'
             with open('./www' + path, 'rb') as file:
@@ -85,8 +90,8 @@ class MyWebServer(socketserver.BaseRequestHandler):
             self.request.sendall(response)
         except FileNotFoundError:
             # Handle 404 Not Found
-            error_response = "HTTP/1.1 404 Not Found\r\nConnection: close\r\n\r\n404 Not Found"
-            self.request.sendall(error_response.encode())
+            response = "HTTP/1.1 404 Not Found\r\nConnection: close\r\n\r\n404 Not Found"
+            self.request.sendall(response.encode())
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 8080
