@@ -61,15 +61,24 @@ class MyWebServer(socketserver.BaseRequestHandler):
             if path == '/':
                 response = "HTTP/1.1 301 Moved Permanently\r\nLocation: /index.html\r\n\r\n"
                 self.request.sendall(response.encode())
-                path = '/index.html'    
-            elif path == '/deep':
-                response = "HTTP/1.1 301 Moved Permanently\r\nLocation: /deep/\r\n\r\n"
-                self.request.sendall(response.encode())
-                path = '/deep/'
-            elif path != '/' and path != '/deep/' and path.endswith('/'): # this is to deal with paths that end in '/'
+                path = '/index.html'  
+            elif ('.html' in path or '.css' in path) and path.endswith('/'):
                 path = path[:-1]
                 response = f"HTTP/1.1 301 Moved Permanently\r\nLocation: {path}\r\n\r\n"
                 self.request.sendall(response.encode())
+            elif not path.endswith('/') and not ('.html' in path or '.css' in path):
+                path = path + '/'
+                response = f"HTTP/1.1 301 Moved Permanently\r\nLocation: {path}\r\n\r\n"
+                self.request.sendall(response.encode())               
+          
+            # elif path == '/deep':
+            #     response = "HTTP/1.1 301 Moved Permanently\r\nLocation: /deep/\r\n\r\n"
+            #     self.request.sendall(response.encode())
+            #     path = '/deep/'
+            # elif path != '/' and path != '/deep/' and path.endswith('/'): # this is to deal with paths that end in '/'
+            #     path = path[:-1]
+            #     response = f"HTTP/1.1 301 Moved Permanently\r\nLocation: {path}\r\n\r\n"
+            #     self.request.sendall(response.encode())
 
             # read the file
             if path == '/deep/': path = '/deep/index.html'
