@@ -77,8 +77,6 @@ class MyWebServer(socketserver.BaseRequestHandler):
                 response_data = file.read()
                 file.close()
                
-            
-
             # Before sending the HTTP response we need to figure out the mimetype
             if path.endswith('.html'):
                 content_type = 'text/html'
