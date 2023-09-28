@@ -58,18 +58,22 @@ class MyWebServer(socketserver.BaseRequestHandler):
             return
         
         try:
+            # dealing with different paths and fixing them
             if path == '/':
                 response = "HTTP/1.1 301 Moved Permanently\r\nLocation: /index.html\r\n\r\n"
                 self.request.sendall(response.encode())
                 path = '/index.html'  
-            elif ('.html' in path or '.css' in path) and path.endswith('/'):
+            elif ('.html' in path or '.css' in path) and path.endswith('/'): # paths that are '.html' or '.css' should not end in '/'
                 path = path[:-1]
                 response = f"HTTP/1.1 301 Moved Permanently\r\nLocation: {path}\r\n\r\n"
                 self.request.sendall(response.encode())
-            elif not path.endswith('/') and not ('.html' in path or '.css' in path):
+            elif not ('.html' in path or '.css' in path) and path.endswith('/'): # paths that are not '.html' or '.css' should go to /index.html
+                path = path + 'index.html'
+            elif not path.endswith('/') and not ('.html' in path or '.css' in path): # paths that are not '.html' or '.css' should end in '/' and should go to /index.html
                 path = path + '/'
                 response = f"HTTP/1.1 301 Moved Permanently\r\nLocation: {path}\r\n\r\n"
-                self.request.sendall(response.encode())               
+                self.request.sendall(response.encode())        
+                path = path + 'index.html'       
           
             # elif path == '/deep':
             #     response = "HTTP/1.1 301 Moved Permanently\r\nLocation: /deep/\r\n\r\n"
@@ -79,9 +83,9 @@ class MyWebServer(socketserver.BaseRequestHandler):
             #     path = path[:-1]
             #     response = f"HTTP/1.1 301 Moved Permanently\r\nLocation: {path}\r\n\r\n"
             #     self.request.sendall(response.encode())
+            # if path == '/deep/': path = '/deep/index.html'
 
             # read the file
-            if path == '/deep/': path = '/deep/index.html'
             with open('./www' + path, 'rb') as file:
                 response_data = file.read()
                 file.close()
