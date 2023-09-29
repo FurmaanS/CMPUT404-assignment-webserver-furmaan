@@ -93,8 +93,8 @@ class MyWebServer(socketserver.BaseRequestHandler):
         try:
             # dealing with different paths and fixing them
             if path == '/':
-                response = "HTTP/1.1 301 Moved Permanently\r\nLocation: /index.html\r\n\r\n"
-                self.request.sendall(response.encode())
+                # response = "HTTP/1.1 301 Moved Permanently\r\nLocation: /index.html\r\n\r\n"
+                # self.request.sendall(response.encode())
                 path = '/index.html'  
             elif ('.html' in path or '.css' in path) and path.endswith('/'): # paths that are '.html' or '.css' should not end in '/'
                 raise FileNotFoundError
