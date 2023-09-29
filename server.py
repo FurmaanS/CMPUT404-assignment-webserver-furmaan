@@ -47,14 +47,46 @@ class MyWebServer(socketserver.BaseRequestHandler):
         
         # this will prevent weird paths that are not allowed such as /../../../../../../../../../../../../etc/group
         if ".." in path:
-            response = "HTTP/1.1 404 Not Found\r\nConnection: close\r\n\r\n404 Not Found"
+            response = "HTTP/1.1 404 Not Found\r\nConnection: close\r\n\r\n" +"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>404 Not Found</title>
+                    <meta http-equiv="Content-Type"
+                    content="text/html;charset=utf-8"/>
+                    <!-- check conformance at http://validator.w3.org/check -->
+            </head>
+
+            <body>
+                <div>
+                    <h1>404 Not Found</h1>
+                </div>
+            </body>
+            </html> 
+            """
             self.request.sendall(response.encode())
             return
         
         # Only method allowed is GET so if anything else send status code of 405
         if method != 'GET':
             # Return a 405 Method Not Allowed response
-            response = "HTTP/1.1 405 Method Not Allowed\r\nConnection: close\r\n\r\n405 Method Not Allowed"
+            response = "HTTP/1.1 405 Method Not Allowed\r\nContent-Type: text/html\r\nConnection: close\r\n\r\n" +"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>405 Method Not Allowed</title>
+                    <meta http-equiv="Content-Type"
+                    content="text/html;charset=utf-8"/>
+                    <!-- check conformance at http://validator.w3.org/check -->
+            </head>
+
+            <body>
+                <div>
+                    <h1>405 Method Not Allowed</h1>
+                </div>
+            </body>
+            </html> 
+            """
             self.request.sendall(response.encode())
             return
         
@@ -70,12 +102,13 @@ class MyWebServer(socketserver.BaseRequestHandler):
                 self.request.sendall(response.encode())
             elif not ('.html' in path or '.css' in path) and path.endswith('/'): # paths that are not '.html' or '.css' should go to /index.html
                 path = path + 'index.html'
-                response = f"HTTP/1.1 301 Moved Permanently\r\nLocation: {path}\r\n\r\n"
+                # response = f"HTTP/1.1 301 Moved Permanently\r\nLocation: {path}\r\n\r\n"
+                # self.request.sendall(response.encode())
             elif not path.endswith('/') and not ('.html' in path or '.css' in path): # paths that are not '.html' or '.css' should end in '/' and should go to /index.html
                 path = path + '/'
                 response = f"HTTP/1.1 301 Moved Permanently\r\nLocation: {path}\r\n\r\n"
                 self.request.sendall(response.encode())        
-                path = path + 'index.html'       
+                path = path + 'index.html'
 
             # read the file
             with open('./www' + path, 'rb') as file:
@@ -93,8 +126,27 @@ class MyWebServer(socketserver.BaseRequestHandler):
             self.request.sendall(response)
         except FileNotFoundError:
             # Handle 404 Not Found
-            response = "HTTP/1.1 404 Not Found\r\nConnection: close\r\n\r\n404 Not Found"
+            response_html = ""
+            response = "HTTP/1.1 404 Not Found\r\nContent-Type: text/html\r\nConnection: close\r\n\r\n" +"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>404 Not Found</title>
+                    <meta http-equiv="Content-Type"
+                    content="text/html;charset=utf-8"/>
+                    <!-- check conformance at http://validator.w3.org/check -->
+            </head>
+
+            <body>
+                <div>
+                    <h1>404 Not Found</h1>
+                </div>
+            </body>
+            </html> 
+            """
+            
             self.request.sendall(response.encode())
+            
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 8080
