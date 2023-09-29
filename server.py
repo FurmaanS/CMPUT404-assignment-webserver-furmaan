@@ -75,16 +75,6 @@ class MyWebServer(socketserver.BaseRequestHandler):
                 response = f"HTTP/1.1 301 Moved Permanently\r\nLocation: {path}\r\n\r\n"
                 self.request.sendall(response.encode())        
                 path = path + 'index.html'       
-          
-            # elif path == '/deep':
-            #     response = "HTTP/1.1 301 Moved Permanently\r\nLocation: /deep/\r\n\r\n"
-            #     self.request.sendall(response.encode())
-            #     path = '/deep/'
-            # elif path != '/' and path != '/deep/' and path.endswith('/'): # this is to deal with paths that end in '/'
-            #     path = path[:-1]
-            #     response = f"HTTP/1.1 301 Moved Permanently\r\nLocation: {path}\r\n\r\n"
-            #     self.request.sendall(response.encode())
-            # if path == '/deep/': path = '/deep/index.html'
 
             # read the file
             with open('./www' + path, 'rb') as file:
