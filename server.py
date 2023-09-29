@@ -69,6 +69,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
                 self.request.sendall(response.encode())
             elif not ('.html' in path or '.css' in path) and path.endswith('/'): # paths that are not '.html' or '.css' should go to /index.html
                 path = path + 'index.html'
+                response = f"HTTP/1.1 301 Moved Permanently\r\nLocation: {path}\r\n\r\n"
             elif not path.endswith('/') and not ('.html' in path or '.css' in path): # paths that are not '.html' or '.css' should end in '/' and should go to /index.html
                 path = path + '/'
                 response = f"HTTP/1.1 301 Moved Permanently\r\nLocation: {path}\r\n\r\n"
